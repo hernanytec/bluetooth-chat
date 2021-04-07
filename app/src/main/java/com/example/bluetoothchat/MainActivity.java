@@ -105,6 +105,9 @@ public class MainActivity extends AppCompatActivity {
                         case ChatController.STATE_LISTEN:
                         case ChatController.STATE_NONE:
                             setStatus("Não conectado");
+                            btnConnect.setEnabled(true);
+                            btnConnect.setVisibility(View.VISIBLE);
+                            btnLeaveChat.setVisibility(View.INVISIBLE);
                             break;
                     }
                     break;
