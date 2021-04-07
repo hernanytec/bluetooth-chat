@@ -5,10 +5,12 @@
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
-    <string name="previous">Previous</string>
+    <string name="listar">Listar</string>
     <string name="find">Procurar</string>
     <string name="main_toolbar_title">Bluetooth Chat</string>
 
     <string name="no_chats_yet">Você ainda não tem nenhuma conversa. Procure dispositivos próximos para iniciar um bate-papo.</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="no_paired_devices"> Nenhum dispositivo pareado! </string>
+    <string name="no_discovered_devices"> Nenhum novo dispositivo descoberto! </string>
 </resources>

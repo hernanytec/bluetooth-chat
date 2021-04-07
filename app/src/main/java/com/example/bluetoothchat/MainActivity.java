@@ -2,6 +2,7 @@ package com.example.bluetoothchat;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -16,7 +17,10 @@ import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.Toast;
+
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int BLUETOOTH_SOLICITATION = 1;
     public static int SELECT_PAIRED_DEVICE = 2;
     public static int SELECT_DISCOVERED_DEVICE = 3;
+    private static final int RECUPERA_DISPOSITIVO = 0;
+
+    Button listarPareados;
+    int timeLeft = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setTitle(R.string.main_toolbar_title);
         setSupportActionBar(toolbar);
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothAdapter = BluetoothFactory.getBluetootAdapter();
 
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(), "Adaptador bluetooth não está funcionando!", Toast.LENGTH_LONG).show();
@@ -42,6 +50,21 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(enableBtIntent, BLUETOOTH_SOLICITATION);
         }
 
+        listarPareados = (Button) findViewById(R.id.button_listar);
+
+        listarPareados.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                chamaIntent();
+            }
+        });
+    }
+
+
+    public void chamaIntent(){
+        Intent i = new
+                Intent(this, EscolherDispositivo.class);
+        startActivity(i);
     }
 
     @Override
@@ -52,14 +75,14 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == Activity.RESULT_OK) {
                 Toast.makeText(getApplicationContext(), "Bluetooth ativado!", Toast.LENGTH_LONG).show();
             } else {
-                Toast.makeText(getApplicationContext(), "Bluethooth nao foi ativado, o app será terminado em 3 segundos.", Toast.LENGTH_LONG).show();
 
-                new CountDownTimer(3000, 1000) {
+                new CountDownTimer(6000, 2000) {
                     public void onFinish() {
                         finish();
                     }
+
                     public void onTick(long millisUntilFinished) {
-                        // A_cada_1_segundo_faça_nada
+                        Toast.makeText(getApplicationContext(), "Bluethooth não foi ativado, o app será terminado em " + timeLeft--, Toast.LENGTH_SHORT).show();
                     }
                 }.start();
             }

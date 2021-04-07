@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    tools:context="com.example.bluetoothchat.EscolherDispositivo"
+
+    <ListView
+        android:id="@+id/listaDispositivos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.82"
+        android:clickable="true"
+        android:focusable="true" />
+    <TextView
+        android:id="@+id/title_new_devices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#666"
+        android:paddingLeft="5dp"
+        android:text="Novos dispositivos"
+        android:textColor="#fff"
+        android:visibility="gone"
+        />
+    <ListView
+        android:id="@+id/listaDescobertos"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.82"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <Button
+        android:id="@+id/botaoDescobrirNovos"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:hint="Descobrir Novos Dispositivos" />
+
+
+</LinearLayout>
