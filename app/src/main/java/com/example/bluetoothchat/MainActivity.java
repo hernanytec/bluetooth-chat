@@ -38,13 +38,14 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> chatAdapter;
     private ArrayList<String> chatMessages;
 
-    public static final int MESSAGE_DEVICE_OBJECT = 1;
-    public static final int MESSAGE_TOAST = 2;
-    public static final int MESSAGE_READ = 3;
-    public static final int MESSAGE_STATE_CHANGE = 4;
-    public static final int MESSAGE_WRITE = 5;
-    public static final int BLUETOOTH_SOLICITATION = 6;
+    public static final int MESSAGE_STATE_CHANGE = 1;
+    public static final int MESSAGE_READ = 2;
+    public static final int MESSAGE_WRITE = 3;
+    public static final int MESSAGE_DEVICE_OBJECT = 4;
+    public static final int MESSAGE_TOAST = 5;
     public static final String DEVICE_OBJECT = "device_name";
+
+    public static final int BLUETOOTH_SOLICITATION = 1;
 
     private ArrayAdapter<String> discoveredDevicesAdapter;
     private BluetoothDevice connectingDevice;
