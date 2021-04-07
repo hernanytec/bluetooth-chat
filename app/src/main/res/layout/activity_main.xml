@@ -26,6 +26,13 @@
             android:layout_marginTop="10dp"
             android:background="@color/design_default_color_primary"
             android:text="Conectar" />
+        <Button
+            android:id="@+id/btn_sair"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/design_default_color_on_background_leave"
+            android:text="Sair da conversa" />
     </LinearLayout>
 
     <ListView
