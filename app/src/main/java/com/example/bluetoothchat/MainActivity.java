@@ -108,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
                             btnConnect.setEnabled(true);
                             btnConnect.setVisibility(View.VISIBLE);
                             btnLeaveChat.setVisibility(View.INVISIBLE);
+                            chatMessages.clear();
+                            chatAdapter.notifyDataSetChanged();
                             break;
                     }
                     break;
@@ -147,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         if (chatController != null)
             chatController.stop();
         btnConnect.setVisibility(View.VISIBLE);
-        //adicionar aqui codigo de reinicialização da main
+
     }
 
     private void showDevicesDialog() {
