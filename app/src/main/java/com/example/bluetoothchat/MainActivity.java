@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView status;
     private Button btnConnect;
+    private Button btnLeaveChat;
     private ListView listView;
     private Dialog dialog;
     private EditText inputLayout;
@@ -74,6 +75,10 @@ public class MainActivity extends AppCompatActivity {
         // Exibe dialog com a lista dos dispositivos
         btnConnect.setOnClickListener(view -> showDevicesDialog());
 
+        //vai fechat chat atual
+        btnLeaveChat.setVisibility(View.INVISIBLE);
+        btnLeaveChat.setOnClickListener(view -> chatLeave());
+
         // Configurando chat adapters
         chatMessages = new ArrayList<>();
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
@@ -90,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
                         case ChatController.STATE_CONNECTED:
                             setStatus("Conectado a: " + connectingDevice.getName());
                             btnConnect.setEnabled(false);
+                            btnConnect.setVisibility(View.INVISIBLE);
+                            btnLeaveChat.setVisibility(View.VISIBLE);
                             break;
                         case ChatController.STATE_CONNECTING:
                             setStatus("Conectando...");
@@ -98,6 +105,11 @@ public class MainActivity extends AppCompatActivity {
                         case ChatController.STATE_LISTEN:
                         case ChatController.STATE_NONE:
                             setStatus("Não conectado");
+                            btnConnect.setEnabled(true);
+                            btnConnect.setVisibility(View.VISIBLE);
+                            btnLeaveChat.setVisibility(View.INVISIBLE);
+                            chatMessages.clear();
+                            chatAdapter.notifyDataSetChanged();
                             break;
                     }
                     break;
@@ -130,6 +142,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setStatus(String s) {
         status.setText(s);
+    }
+
+    public void chatLeave(){
+        btnLeaveChat.setVisibility(View.INVISIBLE);
+        if (chatController != null)
+            chatController.stop();
+        btnConnect.setVisibility(View.VISIBLE);
+
     }
 
     private void showDevicesDialog() {
@@ -236,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
     private void findViewsByIds() {
         status = (TextView) findViewById(R.id.status);
         btnConnect = (Button) findViewById(R.id.btn_connect);
+        btnLeaveChat = (Button) findViewById(R.id.btn_sair);
         listView = (ListView) findViewById(R.id.list);
         inputLayout = (EditText) findViewById(R.id.input_layout);
         View btnSend = findViewById(R.id.btn_send);
