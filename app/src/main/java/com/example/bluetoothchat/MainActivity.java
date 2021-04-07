@@ -39,7 +39,15 @@ public class MainActivity extends AppCompatActivity {
     private EditText inputLayout;
     private BluetoothAdapter bluetoothAdapter;
 
-    public static final int BLUETOOTH_SOLICITATION = 1;
+    public static final int MESSAGE_DEVICE_OBJECT = 1;
+    public static final int MESSAGE_TOAST = 2;
+    public static final int MESSAGE_READ = 3;
+    public static final int MESSAGE_STATE_CHANGE = 4;
+    public static final int MESSAGE_WRITE = 5;
+
+    public static final String DEVICE_OBJECT = "device_name";
+
+    public static final int BLUETOOTH_SOLICITATION = 6;
     private ArrayAdapter<String> discoveredDevicesAdapter;
 
     @Override
@@ -89,11 +97,11 @@ public class MainActivity extends AppCompatActivity {
         pairedDeviceList.setAdapter(pairedDevicesAdapter);
         discoveredDeviceList.setAdapter(discoveredDevicesAdapter);
 
-        // Register for broadcasts when a device is discovered
+        // Registra para o broadcast quando um dispositivo é encontrado
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(broadcastReceiver, filter);
 
-        // Register for broadcasts when discovery has finished
+        // Registra para o broadcast quando a descoberta terminar
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         registerReceiver(broadcastReceiver, filter);
 
@@ -105,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 pairedDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
             }
         } else {
-            pairedDevicesAdapter.add("Nenhum dispositivo pareado");
+            pairedDevicesAdapter.add("Nenhum dispositivo pareado!");
         }
 
         // Definindo ação de click em um item da lista
