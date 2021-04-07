@@ -17,15 +17,12 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -38,17 +35,20 @@ public class MainActivity extends AppCompatActivity {
     private Dialog dialog;
     private EditText inputLayout;
     private BluetoothAdapter bluetoothAdapter;
+    private ArrayAdapter<String> chatAdapter;
+    private ArrayList<String> chatMessages;
 
     public static final int MESSAGE_DEVICE_OBJECT = 1;
     public static final int MESSAGE_TOAST = 2;
     public static final int MESSAGE_READ = 3;
     public static final int MESSAGE_STATE_CHANGE = 4;
     public static final int MESSAGE_WRITE = 5;
-
+    public static final int BLUETOOTH_SOLICITATION = 6;
     public static final String DEVICE_OBJECT = "device_name";
 
-    public static final int BLUETOOTH_SOLICITATION = 6;
     private ArrayAdapter<String> discoveredDevicesAdapter;
+    private BluetoothDevice connectingDevice;
+    private ChatController chatController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +72,63 @@ public class MainActivity extends AppCompatActivity {
 
         // Exibe dialog com a lista dos dispositivos
         btnConnect.setOnClickListener(view -> showDevicesDialog());
+
+        // Configurando chat adapters
+        chatMessages = new ArrayList<>();
+        chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
+        listView.setAdapter(chatAdapter);
+    }
+
+    private Handler handler = new Handler(new Handler.Callback() {
+
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case ChatController.STATE_CONNECTED:
+                            setStatus("Connected to: " + connectingDevice.getName());
+                            btnConnect.setEnabled(false);
+                            break;
+                        case ChatController.STATE_CONNECTING:
+                            setStatus("Connecting...");
+                            btnConnect.setEnabled(false);
+                            break;
+                        case ChatController.STATE_LISTEN:
+                        case ChatController.STATE_NONE:
+                            setStatus("Not connected");
+                            break;
+                    }
+                    break;
+                case MESSAGE_WRITE:
+                    byte[] writeBuf = (byte[]) msg.obj;
+
+                    String writeMessage = new String(writeBuf);
+                    chatMessages.add("Me: " + writeMessage);
+                    chatAdapter.notifyDataSetChanged();
+                    break;
+                case MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+
+                    String readMessage = new String(readBuf, 0, msg.arg1);
+                    chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
+                    chatAdapter.notifyDataSetChanged();
+                    break;
+                case MESSAGE_DEVICE_OBJECT:
+                    connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
+                    Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(), Toast.LENGTH_SHORT).show();
+                    break;
+                case MESSAGE_TOAST:
+                    Toast.makeText(getApplicationContext(), msg.getData().getString("toast"),
+                            Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            return false;
+        }
+    });
+
+    private void setStatus(String s) {
+        status.setText(s);
     }
 
     private void showDevicesDialog() {
@@ -148,27 +205,31 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == BLUETOOTH_SOLICITATION) {
-            if (resultCode == Activity.RESULT_OK) {
-                Toast.makeText(getApplicationContext(), "Bluetooth ativado!", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "Bluethooth nao foi ativado, o app será terminado em 3 segundos.", Toast.LENGTH_LONG).show();
 
-                new CountDownTimer(3000, 1000) {
-                    public void onFinish() {
-                        finish();
-                    }
-                    public void onTick(long millisUntilFinished) {
-                        // A_cada_1_segundo_faça_nada
-                    }
-                }.start();
-            }
+        switch (requestCode) {
+            case BLUETOOTH_SOLICITATION:
+                if (resultCode == Activity.RESULT_OK) {
+                    Toast.makeText(getApplicationContext(), "Bluetooth ativado!", Toast.LENGTH_LONG).show();
+                    chatController = new ChatController(this, handler);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Bluethooth nao foi ativado, o app será terminado em 3 segundos.", Toast.LENGTH_LONG).show();
+
+                    new CountDownTimer(3000, 1000) {
+                        public void onFinish() {
+                            finish();
+                        }
+                        public void onTick(long millisUntilFinished) {
+                            // A_cada_1_segundo_faça_nada
+                        }
+                    }.start();
+                }
         }
     }
 
     private void connectToDevice(String macAddress) {
         bluetoothAdapter.cancelDiscovery();
-        // TODO: iniciar conexão
+        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(macAddress);
+        chatController.connect(device);
     }
 
     private void findViewsByIds() {
@@ -182,11 +243,24 @@ public class MainActivity extends AppCompatActivity {
             if (inputLayout.getText().toString().equals("")) {
                 Toast.makeText(MainActivity.this, "Digite algum texto", Toast.LENGTH_SHORT).show();
             } else {
-                //TODO: enviar mensagem
-                //TODO: limpar campo de texto
+                sendMessage(inputLayout.getText().toString());
+                inputLayout.setText("");
             }
         });
     }
+
+    private void sendMessage(String message) {
+        if (chatController.getStatus() != ChatController.STATE_CONNECTED) {
+            Toast.makeText(this, "Sem conexão!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (message.length() > 0) {
+            byte[] send = message.getBytes();
+            chatController.write(send);
+        }
+    }
+
 
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -205,4 +279,34 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, BLUETOOTH_SOLICITATION);
+        } else {
+            chatController = new ChatController(this, handler);
+        }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (chatController != null) {
+            if (chatController.getStatus() == ChatController.STATE_NONE) {
+                chatController.start();
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (chatController != null)
+            chatController.stop();
+    }
 }
